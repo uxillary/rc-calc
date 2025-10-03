@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>RollerTap Upgrade Logger</title>
+  <style>
+    :root{
+      --bg:#0b0f14; --card:#121824; --muted:#9fb0c3; --text:#e6f0ff;
+      --acc:#55e6a5; --acc2:#6aa0ff; --warn:#f59e0b; --bad:#ef4444;
+      --shadow:0 10px 25px rgba(0,0,0,.35);
+      --radius:16px;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{margin:0;background:radial-gradient(1200px 800px at 20% -10%,#122033 0%,#0b0f14 60%);color:var(--text);font:14px/1.45 system-ui,Segoe UI,Roboto,Inter,Arial}
+    a{color:var(--acc2)}
+    .wrap{max-width:1100px;margin:32px auto;padding:0 16px}
+    .row{display:grid;grid-template-columns:1fr;gap:16px}
+    @media(min-width:880px){.row{grid-template-columns: 1.2fr .8fr}}
+    .card{background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.02));border:1px solid rgba(255,255,255,.08);border-radius:var(--radius);box-shadow:var(--shadow)}
+    .card>header{padding:14px 16px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:10px}
+    .card>header h2{margin:0;font-size:16px;font-weight:700;letter-spacing:.2px}
+    .card .content{padding:16px}
+    .grid{display:grid;gap:10px}
+    @media(min-width:640px){.grid.cols-2{grid-template-columns:repeat(2,1fr)}; .grid.cols-3{grid-template-columns:repeat(3,1fr)}}
+    label{font-size:12px;color:var(--muted);display:block;margin:0 0 6px}
+    input,select,button{appearance:none;border:none;outline:none}
+    input,select{width:100%;padding:12px 12px;border-radius:12px;background:#0f1521;color:var(--text);border:1px solid rgba(255,255,255,.09)}
+    input::placeholder{color:#8093a8}
+    .rowline{display:flex;gap:10px;align-items:center}
+    .btn{padding:10px 14px;border-radius:12px;background:linear-gradient(180deg, #1c2435, #151c2b);color:var(--text);border:1px solid rgba(255,255,255,.12);cursor:pointer;transition:.2s}
+    .btn:hover{transform:translateY(-1px);box-shadow:0 8px 20px rgba(0,0,0,.25)}
+    .btn.acc{background:linear-gradient(180deg, rgba(85,230,165,.2), rgba(85,230,165,.09));border-color:rgba(85,230,165,.5)}
+    .btn.warn{background:linear-gradient(180deg, rgba(245,158,11,.2), rgba(245,158,11,.08));border-color:rgba(245,158,11,.5)}
+    .btn.ghost{background:transparent;border:1px dashed rgba(255,255,255,.18)}
+    .pill{font-size:12px;padding:6px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.15);color:#cfeaff;background:rgba(106,160,255,.15)}
+    .kpi{display:flex;gap:14px;flex-wrap:wrap}
+    .kpi .box{flex:1 1 160px;background:#0f1521;border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:12px 12px}
+    .kpi .box b{font-size:18px}
+    table{width:100%;border-collapse:collapse}
+    th,td{padding:10px 8px;border-bottom:1px solid rgba(255,255,255,.06);text-align:left}
+    th{font-size:12px;color:var(--muted);font-weight:600}
+    tbody tr:hover{background:rgba(255,255,255,.03)}
+    .right{text-align:right}
+    .muted{color:var(--muted)}
+    .small{font-size:12px}
+    .tag{padding:2px 8px;border-radius:10px;background:rgba(85,230,165,.12);border:1px solid rgba(85,230,165,.35)}
+    .danger{color:#ffb3b3}
+    .flex{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+    .space{height:8px}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1 style="margin:0 0 18px;font-size:26px;letter-spacing:.3px">RollerTap Upgrade Logger</h1>
+    <div class="row">
+      <section class="card">
+        <header>
+          <h2>Log an Upgrade</h2>
+          <span class="pill" id="status">offline-first</span>
+        </header>
+        <div class="content">
+          <div class="grid cols-3">
+            <div>
+              <label>Hamster</label>
+              <input id="ham" placeholder="e.g. Robo-Hamster" list="ham-list" />
+              <datalist id="ham-list"></datalist>
+            </div>
+            <div>
+              <label>Level (after purchase)</label>
+              <input id="lvl_to" type="number" min="1" placeholder="e.g. 22" />
+            </div>
+            <div>
+              <label>Level (before)</label>
+              <input id="lvl_from" type="number" min="0" placeholder="auto" />
+            </div>
+          </div>
+          <div class="space"></div>
+          <div class="grid cols-3">
+            <div>
+              <label>Cost (RC)</label>
+              <input id="cost" type="number" min="0" placeholder="e.g. 1024000" />
+            </div>
+            <div>
+              <label>+ RC/hour from this level</label>
+              <input id="delta" type="number" min="0" placeholder="e.g. 1121" />
+            </div>
+            <div>
+              <label>Timestamp</label>
+              <input id="when" type="datetime-local" />
+            </div>
+          </div>
+          <div class="space"></div>
+          <div class="grid cols-2">
+            <div>
+              <label class="muted small">Optional context</label>
+              <div class="grid cols-2">
+                <div>
+                  <input id="base_before" type="number" placeholder="Base/hr before (opt)" />
+                </div>
+                <div>
+                  <input id="base_after" type="number" placeholder="Base/hr after (opt)" />
+                </div>
+              </div>
+            </div>
+            <div class="kpi">
+              <div class="box"><div class="muted small">ROI (Δ/hr ÷ Cost)</div><b id="kpi_roi">—</b></div>
+              <div class="box"><div class="muted small">Δ/hr per 1M</div><b id="kpi_perM">—</b></div>
+            </div>
+          </div>
+
+          <div class="space"></div>
+          <div class="flex">
+            <button class="btn acc" id="btnAdd">Add Entry</button>
+            <button class="btn" id="btnNew">Clear Form</button>
+            <button class="btn ghost" id="btnClone">Clone last for hamster</button>
+          </div>
+        </div>
+      </section>
+
+      <aside class="card">
+        <header><h2>Your Data</h2></header>
+        <div class="content">
+          <div class="kpi">
+            <div class="box"><div class="muted small">Entries</div><b id="stat_count">0</b></div>
+            <div class="box"><div class="muted small">Hamsters</div><b id="stat_ham">0</b></div>
+            <div class="box"><div class="muted small">Avg Cost Multiplier</div><b id="stat_r">—</b></div>
+          </div>
+          <div class="space"></div>
+          <div class="flex">
+            <button class="btn" id="btnExportJSON">Export JSON</button>
+            <button class="btn" id="btnExportCSV">Export CSV</button>
+            <label class="btn warn" for="fileImport" style="cursor:pointer">Import JSON</label>
+            <input id="fileImport" type="file" accept="application/json" style="display:none" />
+          </div>
+          <p class="small muted">Data is stored locally in your browser (localStorage). Export regularly to back up.</p>
+        </div>
+      </aside>
+    </div>
+
+    <section class="card" style="margin-top:16px">
+      <header>
+        <h2>Log</h2>
+        <div class="flex small muted">
+          <span>Sort:</span>
+          <button class="btn ghost" data-sort="time">Time</button>
+          <button class="btn ghost" data-sort="roi">ROI</button>
+          <button class="btn ghost" data-sort="perM">Δ/hr per 1M</button>
+          <button class="btn ghost" data-sort="ham">Hamster</button>
+        </div>
+      </header>
+      <div class="content">
+        <table id="tbl">
+          <thead>
+            <tr>
+              <th>Time</th>
+              <th>Hamster</th>
+              <th class="right">Lvl</th>
+              <th class="right">Cost</th>
+              <th class="right">Δ/hr</th>
+              <th class="right">ROI</th>
+              <th class="right">Δ/hr per 1M</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="card" style="margin-top:16px">
+      <header><h2>Per‑Hamster Quick Curves (last 2 points)</h2></header>
+      <div class="content" id="curves"></div>
+    </section>
+  </div>
+
+  <script>
+    // ---------- Utilities ----------
+    const $ = sel => document.querySelector(sel);
+    const fmt = n => n==null?"—":Number(n).toLocaleString(undefined,{maximumFractionDigits:0});
+    const fmtDec = n => n==null?"—":Number(n).toLocaleString(undefined,{maximumFractionDigits:2});
+    const key = 'rollertap_logs_v1';
+
+    function load(){ try{ return JSON.parse(localStorage.getItem(key))||[] }catch{ return [] } }
+    function save(rows){ localStorage.setItem(key, JSON.stringify(rows)); }
+
+    function nowLocalDT(){
+      const d = new Date(); d.setMinutes(d.getMinutes()-d.getTimezoneOffset());
+      return d.toISOString().slice(0,16);
+    }
+
+    function computeROI(delta,cost){ if(!cost||!delta) return {roi:null,perM:null};
+      const roi = delta/cost; return {roi, perM: roi*1_000_000}; }
+
+    function unique(list){ return [...new Set(list)] }
+
+    // ---------- State ----------
+    let rows = load();
+    let sortKey = 'time';
+
+    // ---------- Form logic ----------
+    const ham=$('#ham'), lvl_to=$('#lvl_to'), lvl_from=$('#lvl_from'), cost=$('#cost'), delta=$('#delta');
+    const when=$('#when'), base_before=$('#base_before'), base_after=$('#base_after');
+    const kpi_roi=$('#kpi_roi'), kpi_perM=$('#kpi_perM');
+
+    when.value = nowLocalDT();
+
+    function refreshHamDatalist(){
+      const names = unique(rows.map(r=>r.ham)).sort();
+      const dl = $('#ham-list'); dl.innerHTML = names.map(n=>`<option value="${n}"></option>`).join('');
+    }
+
+    function updateKPIs(){
+      const {roi,perM} = computeROI(Number(delta.value), Number(cost.value));
+      kpi_roi.textContent = roi? fmtDec(roi) : '—';
+      kpi_perM.textContent = perM? fmtDec(perM) : '—';
+    }
+
+    [delta,cost].forEach(i=> i.addEventListener('input', updateKPIs));
+
+    $('#btnNew').onclick = ()=>{
+      [ham,lvl_to,lvl_from,cost,delta,base_before,base_after].forEach(i=> i.value='');
+      when.value = nowLocalDT(); updateKPIs();
+    };
+
+    $('#btnClone').onclick = ()=>{
+      const name = ham.value.trim(); if(!name) return;
+      const last = [...rows].reverse().find(r=>r.ham===name);
+      if(last){ lvl_from.value = last.lvl_to; lvl_to.value = Number(last.lvl_to)+1; delta.value=''; cost.value=''; updateKPIs(); }
+    };
+
+    $('#btnAdd').onclick = ()=>{
+      const r = {
+        id: crypto.randomUUID(),
+        t: new Date(when.value||Date.now()).getTime(),
+        ham: ham.value.trim(),
+        lvl_from: Number(lvl_from.value)||null,
+        lvl_to: Number(lvl_to.value)||null,
+        cost: Number(cost.value)||null,
+        delta_hr: Number(delta.value)||null,
+        base_before: Number(base_before.value)||null,
+        base_after: Number(base_after.value)||null
+      };
+      if(!r.ham || !r.lvl_to || !r.cost || !r.delta_hr){ alert('Please fill Hamster, Level(after), Cost and Δ/hr'); return; }
+      if(!r.lvl_from) r.lvl_from = r.lvl_to-1;
+      rows.push(r); save(rows); draw(); refreshHamDatalist();
+      // prep next entry quickly
+      lvl_from.value = r.lvl_to; lvl_to.value = r.lvl_to+1; cost.value=''; delta.value=''; updateKPIs();
+    };
+
+    // ---------- Table rendering ----------
+    function draw(){
+      // Stats
+      $('#stat_count').textContent = rows.length;
+      $('#stat_ham').textContent = unique(rows.map(r=>r.ham)).length;
+
+      // Sort
+      const sorted = [...rows];
+      if(sortKey==='time') sorted.sort((a,b)=>b.t-a.t);
+      if(sortKey==='roi' || sortKey==='perM') sorted.sort((a,b)=> (b.delta_hr/b.cost) - (a.delta_hr/a.cost));
+      if(sortKey==='ham') sorted.sort((a,b)=> a.ham.localeCompare(b.ham) || b.lvl_to-a.lvl_to);
+
+      // Table
+      const tbody = $('#tbl tbody');
+      tbody.innerHTML = sorted.map(r=>{
+        const {roi,perM}=computeROI(r.delta_hr,r.cost);
+        const dt = new Date(r.t).toLocaleString();
+        return `<tr>
+          <td>${dt}</td>
+          <td>${r.ham}</td>
+          <td class="right">${r.lvl_from}→<b>${r.lvl_to}</b></td>
+          <td class="right">${fmt(r.cost)}</td>
+          <td class="right">${fmt(r.delta_hr)}</td>
+          <td class="right small">${roi?fmtDec(roi):'—'}</td>
+          <td class="right small">${perM?fmtDec(perM):'—'}</td>
+          <td class="right"><button class="btn warn small" data-del="${r.id}">Delete</button></td>
+        </tr>`;
+      }).join('');
+
+      tbody.querySelectorAll('[data-del]').forEach(btn=>{
+        btn.onclick=()=>{ rows = rows.filter(x=>x.id!==btn.dataset.del); save(rows); draw(); refreshHamDatalist(); };
+      });
+
+      // Curves (very lightweight, last 2 points per hamster)
+      const byHam = {};
+      for(const r of [...rows].sort((a,b)=>a.lvl_to-b.lvl_to)){
+        byHam[r.ham] ??= []; byHam[r.ham].push(r);
+      }
+      const blocks = [];
+      let rAvg = [];
+      for(const [name,arr] of Object.entries(byHam)){
+        const last2 = arr.slice(-2);
+        let costMul='—', gainMul='—';
+        if(last2.length===2){
+          const [p,q]=last2; // p older, q newer
+          costMul = (q.cost/p.cost).toFixed(4);
+          const g1 = p.delta_hr, g2 = q.delta_hr;
+          gainMul = g1>0? (g2/g1).toFixed(4) : '—';
+          rAvg.push(q.cost/p.cost);
+        }
+        blocks.push(`<div class="box"><div class="muted small">${name}</div>
+                      <div class="small">cost ×/lvl: <b>${costMul}</b></div>
+                      <div class="small">gain ×/lvl: <b>${gainMul}</b></div>
+                      <div class="small">last lvl: <b>${arr.at(-1).lvl_to}</b></div></div>`);
+      }
+      $('#curves').innerHTML = `<div class="kpi">${blocks.join('')}</div>`;
+      $('#stat_r').textContent = rAvg.length? (rAvg.reduce((a,b)=>a+b,0)/rAvg.length).toFixed(3) : '—';
+    }
+
+    // ---------- Export / Import ----------
+    $('#btnExportJSON').onclick = ()=> download('rollertap-logs.json', JSON.stringify(rows,null,2));
+    $('#btnExportCSV').onclick  = ()=> download('rollertap-logs.csv', toCSV(rows));
+    $('#fileImport').addEventListener('change', async (e)=>{
+      const f = e.target.files[0]; if(!f) return; const txt = await f.text();
+      try{ const incoming = JSON.parse(txt); if(!Array.isArray(incoming)) throw 0;
+        // Merge by (ham,lvl_to,cost,delta_hr)
+        const sig = r=>`${r.ham}|${r.lvl_to}|${r.cost}|${r.delta_hr}`;
+        const set = new Set(rows.map(sig));
+        for(const r of incoming){ if(!set.has(sig(r))){ rows.push(r); set.add(sig(r)); } }
+        save(rows); draw(); refreshHamDatalist();
+      }catch{ alert('Invalid JSON file.'); }
+      e.target.value='';
+    });
+
+    function toCSV(arr){
+      const header = ['t','ham','lvl_from','lvl_to','cost','delta_hr','base_before','base_after'];
+      const lines = [header.join(',')];
+      for(const r of arr){ lines.push(header.map(k=> r[k]??'').join(',')); }
+      return lines.join('\n');
+    }
+
+    function download(filename, text){
+      const a=document.createElement('a');
+      a.href = URL.createObjectURL(new Blob([text],{type:'text/plain'}));
+      a.download = filename; a.click(); URL.revokeObjectURL(a.href);
+    }
+
+    // ---------- Sort buttons ----------
+    document.querySelectorAll('[data-sort]').forEach(b=> b.onclick=()=>{ sortKey=b.dataset.sort; draw(); });
+
+    // ---------- Init ----------
+    draw(); refreshHamDatalist(); updateKPIs();
+  </script>
+</body>
+</html>
