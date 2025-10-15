@@ -9,17 +9,8 @@ export type LogEntryV1 = {
   dHr: number;
   totBefore?: number;
   totAfter?: number;
-  roi?: number;
-  perM?: number;
   excluded?: boolean;
 };
-
-export type LogEntry = LogEntryV1 & {
-  id: string;
-  createdAt: number;
-};
-
-export type LogsStorage = LogEntryV1[];
 
 export type Options = {
   kmbInput: boolean;
@@ -27,15 +18,18 @@ export type Options = {
   schemaVer: 1;
 };
 
-export type AppState = {
-  lastHamLevels: Record<HamsterId, number>;
+export type LogEntry = LogEntryV1 & {
+  id: string;
+  createdAt: number;
+  roi: number;
+  perM: number;
 };
 
-export type StorageSnapshot = {
+export interface LocalState {
   logs: LogEntry[];
+  lastLevels: Record<HamsterId, number>;
   options: Options;
-  state: AppState;
-};
+}
 
 export type OutlierInfo = {
   costZ?: number;
@@ -46,6 +40,8 @@ export type HamsterFit = {
   hamster: HamsterId;
   lastLevel: number | null;
   avgMultiplier: number | null;
+  costBase: number | null;
+  costRatio: number | null;
   gainAlpha: number | null;
   gainBeta: number | null;
   confidence: number;

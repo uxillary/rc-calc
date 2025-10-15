@@ -6,12 +6,11 @@ import { NextBestPanel } from './components/NextBestPanel';
 import { buildHamsterFits } from './lib/curves';
 import {
   DEFAULT_OPTIONS,
-  DEFAULT_STATE,
   createLogEntry,
-  loadSnapshot,
+  loadLocalState,
+  persistLastLevels,
   persistLogs,
   persistOptions,
-  persistState,
 } from './lib/storage';
 import { groupByHamster, rollingZScores } from './lib/stats';
 import { HamsterFit, LogEntry, LogEntryV1, OutlierInfo, Options } from './types';
@@ -23,18 +22,18 @@ const signature = (entry: Pick<LogEntryV1, 'ham' | 'lvlTo' | 'cost' | 'dHr'>) =>
 
 export default function App() {
   const [logs, setLogs] = useState<LogEntry[]>([]);
-  const [options, setOptions] = useState<Options>(DEFAULT_OPTIONS);
-  const [prefillLevels, setPrefillLevels] = useState<Record<string, number>>(DEFAULT_STATE.lastHamLevels);
+  const [options, setOptions] = useState<Options>({ ...DEFAULT_OPTIONS });
+  const [prefillLevels, setPrefillLevels] = useState<Record<string, number>>({});
   const [loaded, setLoaded] = useState(false);
   const [importMessage, setImportMessage] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!isBrowser) return;
-    const snapshot = loadSnapshot();
+    const snapshot = loadLocalState();
     setLogs(snapshot.logs);
     setOptions(snapshot.options);
-    setPrefillLevels(snapshot.state.lastHamLevels ?? {});
+    setPrefillLevels(snapshot.lastLevels ?? {});
     setLoaded(true);
   }, []);
 
@@ -50,7 +49,7 @@ export default function App() {
 
   useEffect(() => {
     if (!loaded || !isBrowser) return;
-    persistState({ lastHamLevels: prefillLevels });
+    persistLastLevels(prefillLevels);
   }, [prefillLevels, loaded]);
 
   useEffect(() => {
@@ -125,14 +124,7 @@ export default function App() {
   }, [logs]);
 
   const handleAdd = (entry: LogEntryV1) => {
-    const roi = entry.dHr / entry.cost;
-    const perM = roi * 1_000_000;
-    const normalized: LogEntryV1 = {
-      ...entry,
-      roi,
-      perM,
-    };
-    const log = createLogEntry(normalized);
+    const log = createLogEntry(entry);
     setLogs((prev) => [...prev, log]);
     setPrefillLevels((prev) => ({ ...prev, [entry.ham]: entry.lvlTo }));
   };
@@ -162,19 +154,17 @@ export default function App() {
   };
 
   const handleExportCSV = () => {
-    const rows = logs.map(stripMeta);
     const header = ['ham', 'lvlFrom', 'lvlTo', 'cost', 'dHr', 'totBefore', 'totAfter', 'roi', 'perM', 'excluded'];
     const lines = [header.join(',')];
-    rows.forEach((row) => {
-      lines.push(
-        header
-          .map((key) => {
-            const value = (row as Record<string, unknown>)[key];
-            if (value === undefined) return '';
-            return typeof value === 'number' ? value.toString() : String(value);
-          })
-          .join(',')
-      );
+    logs.forEach((entry) => {
+      const values = header.map((key) => {
+        const raw = (entry as unknown as Record<string, unknown>)[key];
+        if (raw === undefined || raw === null) return '';
+        if (typeof raw === 'number') return raw.toString();
+        if (typeof raw === 'boolean') return raw ? 'true' : 'false';
+        return String(raw);
+      });
+      lines.push(values.join(','));
     });
     const blob = new Blob([lines.join('\n')], { type: 'text/csv' });
     downloadBlob(blob, `rollertap-logs_v1_${timestamp()}.csv`);
@@ -234,6 +224,7 @@ export default function App() {
           lastLevels={prefillLevels}
           options={options}
           duplicates={duplicateSignatures}
+          lastEntry={logs.length ? logs[logs.length - 1] : null}
           onSubmit={handleAdd}
         />
         <div className="grid" style={{ gap: 18 }}>
@@ -334,7 +325,7 @@ export default function App() {
 }
 
 function stripMeta(entry: LogEntry): LogEntryV1 {
-  const { id: _id, createdAt: _createdAt, ...rest } = entry;
+  const { id: _id, createdAt: _createdAt, roi: _roi, perM: _perM, ...rest } = entry;
   return rest;
 }
 
@@ -365,7 +356,6 @@ function normalizeRaw(raw: LogEntryV1): LogEntryV1 | null {
   if (raw.lvlTo !== raw.lvlFrom + 1) return null;
   if (typeof raw.cost !== 'number' || raw.cost <= 0) return null;
   if (typeof raw.dHr !== 'number' || raw.dHr <= 0) return null;
-  const roi = raw.dHr / raw.cost;
   return {
     v: 1,
     ham: raw.ham,
@@ -375,8 +365,6 @@ function normalizeRaw(raw: LogEntryV1): LogEntryV1 | null {
     dHr: raw.dHr,
     totBefore: raw.totBefore,
     totAfter: raw.totAfter,
-    roi,
-    perM: roi * 1_000_000,
     excluded: raw.excluded,
   };
 }

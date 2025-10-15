@@ -6,14 +6,31 @@ type HamsterCardProps = {
 };
 
 export function HamsterCard({ fit }: HamsterCardProps) {
-  const { hamster, lastLevel, avgMultiplier, gainAlpha, gainBeta, confidence, levels, costs, gains } = fit;
+  const {
+    hamster,
+    lastLevel,
+    avgMultiplier,
+    costBase,
+    costRatio,
+    gainAlpha,
+    gainBeta,
+    confidence,
+    costFitR2,
+    gainFitR2,
+    levels,
+    costs,
+    gains,
+  } = fit;
   const badgeClass = confidence >= 0.75 ? 'badge good' : confidence >= 0.4 ? 'badge medium' : 'badge low';
+  const confidenceLabel = confidence >= 0.75 ? 'High Confidence' : confidence >= 0.4 ? 'Moderate Confidence' : 'Low Confidence';
 
   return (
     <div className="hamster-card">
       <div className="flex" style={{ justifyContent: 'space-between' }}>
         <h3 style={{ margin: 0 }}>{hamster}</h3>
-        <span className={badgeClass}>confidence {Math.round(confidence * 100)}%</span>
+        <span className={badgeClass}>
+          {confidenceLabel} · {Math.round(confidence * 100)}%
+        </span>
       </div>
       <div className="grid cols-2">
         <div>
@@ -21,8 +38,8 @@ export function HamsterCard({ fit }: HamsterCardProps) {
           <div>{lastLevel ?? '—'}</div>
         </div>
         <div>
-          <span className="muted small">Avg cost ×</span>
-          <div>{avgMultiplier ? avgMultiplier.toFixed(3) : '—'}</div>
+          <span className="muted small">Cost fit r</span>
+          <div>{costRatio ? costRatio.toFixed(3) : avgMultiplier ? avgMultiplier.toFixed(3) : '—'}</div>
         </div>
         <div>
           <span className="muted small">Gain intercept α</span>
@@ -31,6 +48,16 @@ export function HamsterCard({ fit }: HamsterCardProps) {
         <div>
           <span className="muted small">Gain slope β</span>
           <div>{gainBeta !== null ? gainBeta.toFixed(3) : '—'}</div>
+        </div>
+        <div>
+          <span className="muted small">Cost base A</span>
+          <div>{costBase !== null ? formatNumber(costBase, 2) : '—'}</div>
+        </div>
+        <div>
+          <span className="muted small">Fit R² (cost/gain)</span>
+          <div>
+            {costFitR2 !== null ? costFitR2.toFixed(2) : '—'} / {gainFitR2 !== null ? gainFitR2.toFixed(2) : '—'}
+          </div>
         </div>
       </div>
       <div className="muted small">Fits use {levels.length} points</div>

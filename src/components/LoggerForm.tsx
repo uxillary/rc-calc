@@ -1,19 +1,27 @@
 import { useEffect, useMemo, useState } from 'react';
 import { parseKMB } from '../lib/parse';
-import { LogEntryV1, Options } from '../types';
+import { LogEntry, LogEntryV1, Options } from '../types';
 
 type LoggerFormProps = {
   knownHamsters: string[];
   lastLevels: Record<string, number>;
   options: Options;
   duplicates: Set<string>;
+  lastEntry: LogEntry | null;
   onSubmit: (entry: LogEntryV1) => void;
 };
 
 const DUPLICATE_SIG = (entry: Pick<LogEntryV1, 'ham' | 'lvlTo' | 'cost' | 'dHr'>) =>
   `${entry.ham}|${entry.lvlTo}|${entry.cost}|${entry.dHr}`;
 
-export function LoggerForm({ knownHamsters, lastLevels, options, duplicates, onSubmit }: LoggerFormProps) {
+export function LoggerForm({
+  knownHamsters,
+  lastLevels,
+  options,
+  duplicates,
+  lastEntry,
+  onSubmit,
+}: LoggerFormProps) {
   const [hamster, setHamster] = useState('');
   const [lvlTo, setLvlTo] = useState<number | ''>('');
   const [lvlFrom, setLvlFrom] = useState<number | ''>('');
@@ -74,7 +82,7 @@ export function LoggerForm({ knownHamsters, lastLevels, options, duplicates, onS
     if (Number.isFinite(dHrValue) && Math.abs(delta - dHrValue) > Math.max(1, dHrValue * 0.02)) {
       setWarning(`Totals mismatch (Δ=${delta.toLocaleString()} vs input ${dHrValue.toLocaleString()})`);
     }
-  }, [totBefore, totAfter, dHrValue]);
+  }, [totBefore, totAfter, dHrValue, options.kmbInput]);
 
   const resetForm = () => {
     setHamster('');
@@ -135,8 +143,6 @@ export function LoggerForm({ knownHamsters, lastLevels, options, duplicates, onS
           ? parseKMB(totAfter)
           : Number(totAfter)
         : undefined,
-      roi: roi ?? undefined,
-      perM: perM ?? undefined,
     };
 
     onSubmit(entry);
@@ -146,6 +152,20 @@ export function LoggerForm({ knownHamsters, lastLevels, options, duplicates, onS
     setDHrRaw('');
     setTotBefore('');
     setTotAfter('');
+    setWarning(null);
+  };
+
+  const handleCloneLast = () => {
+    if (!lastEntry) return;
+    setHamster(lastEntry.ham);
+    const nextLevelFrom = lastEntry.lvlTo;
+    setLvlFrom(nextLevelFrom);
+    setLvlTo(nextLevelFrom + 1);
+    setCostRaw('');
+    setDHrRaw('');
+    setTotBefore('');
+    setTotAfter('');
+    setError(null);
     setWarning(null);
   };
 
@@ -226,11 +246,11 @@ export function LoggerForm({ knownHamsters, lastLevels, options, duplicates, onS
             <div className="kpi-grid">
               <div className="kpi-box">
                 <span className="muted small">ROI (Δ ÷ cost)</span>
-                <strong>{roi ? roi.toFixed(5) : '—'}</strong>
+                <strong>{roi !== null ? roi.toFixed(5) : '—'}</strong>
               </div>
               <div className="kpi-box">
                 <span className="muted small">Δ/hr per 1M</span>
-                <strong>{perM ? perM.toFixed(2) : '—'}</strong>
+                <strong>{perM !== null ? perM.toFixed(2) : '—'}</strong>
               </div>
             </div>
           </div>
@@ -276,6 +296,9 @@ export function LoggerForm({ knownHamsters, lastLevels, options, duplicates, onS
 
         <div className="flex" style={{ marginTop: 16 }}>
           <button type="submit">Add Entry</button>
+          <button type="button" className="ghost" onClick={handleCloneLast} disabled={!lastEntry}>
+            Clone Last
+          </button>
           <button type="button" className="ghost" onClick={resetForm}>
             Clear
           </button>
