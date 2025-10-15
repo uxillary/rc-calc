@@ -1,0 +1,13 @@
+{
+  "ham": "HammJinn",
+  "complete": false,
+  "points": [],
+  "notes": "Unable to confirm any RollerTap upgrade statistics for HammJinn; tracked searches only surfaced unrelated references (no RCC cost/income).",
+  "source": [
+    "https://r.jina.ai/https://duckduckgo.com/?q=%22HammJinn%22",
+    "https://r.jina.ai/https://duckduckgo.com/?q=%22Hamm+Jinn%22"
+  ],
+  "log": [
+    "logs/2025-10-14.md"
+  ]
+}

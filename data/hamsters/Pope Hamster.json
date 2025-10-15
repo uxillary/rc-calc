@@ -1,0 +1,13 @@
+{
+  "ham": "Pope Hamster",
+  "complete": false,
+  "points": [],
+  "notes": "No RollerTap upgrade pricing or income figures published in accessible sources; Telegram mirrors require login for post bodies.",
+  "source": [
+    "https://r.jina.ai/https://www.bing.com/search?q=Pope+Hamster+RollerTap",
+    "https://r.jina.ai/https://tgstat.com/channel/@rollertap?text=Pope%20Hamster"
+  ],
+  "log": [
+    "logs/2025-10-14.md"
+  ]
+}

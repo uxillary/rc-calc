@@ -1,0 +1,13 @@
+{
+  "ham": "Hamsterita",
+  "complete": false,
+  "points": [],
+  "notes": "No public upgrade cost or income data located during 2025-10-14 follow-up sweep; awaiting verifiable figures before populating curve points.",
+  "source": [
+    "https://r.jina.ai/https://tgstat.com/channel/@rollertap?text=Hamsterita",
+    "https://r.jina.ai/https://www.bing.com/search?q=Hamsterita+RollerTap"
+  ],
+  "log": [
+    "logs/2025-10-14.md"
+  ]
+}
