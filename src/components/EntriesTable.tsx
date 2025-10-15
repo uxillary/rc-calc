@@ -31,6 +31,11 @@ export function EntriesTable({ logs, outliers, conflicts, onToggleExclude, onDel
     }
   }, [logs, sortKey]);
 
+  const hamsterCount = useMemo(() => {
+    const unique = new Set(logs.map((entry) => entry.ham));
+    return unique.size;
+  }, [logs]);
+
   return (
     <div className="card">
       <header>
@@ -55,63 +60,67 @@ export function EntriesTable({ logs, outliers, conflicts, onToggleExclude, onDel
         {sorted.length === 0 ? (
           <p className="muted">No entries logged yet.</p>
         ) : (
-          <table>
-            <thead>
-              <tr>
-                <th>When</th>
-                <th>Hamster</th>
-                <th>Level</th>
-                <th className="right">Cost</th>
-                <th className="right">Δ/hr</th>
-                <th className="right">ROI</th>
-                <th className="right">Δ/hr per 1M</th>
-                <th>Status</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {sorted.map((entry) => {
-                const outlier = outliers.get(entry.id);
-                const conflict = conflicts.has(signature(entry));
-                return (
-                  <tr key={entry.id}>
-                    <td>{new Date(entry.createdAt).toLocaleString()}</td>
-                    <td>{entry.ham}</td>
-                    <td>
-                      {entry.lvlFrom}→<strong>{entry.lvlTo}</strong>
-                    </td>
-                    <td className="right">{formatNumber(entry.cost)}</td>
-                    <td className="right">{formatNumber(entry.dHr)}</td>
-                    <td className="right">{entry.roi !== undefined ? entry.roi.toFixed(6) : '—'}</td>
-                    <td className="right">
-                      {entry.perM !== undefined ? formatShortNumber(entry.perM, 2) : '—'}
-                    </td>
-                    <td>
-                      <div className="flex small">
-                        {entry.excluded && <span className="tag danger">excluded</span>}
-                        {conflict && <span className="tag warn">conflict</span>}
-                        {outlier &&
-                          ((outlier.costZ !== undefined && Math.abs(outlier.costZ) > 2.5) ||
-                            (outlier.gainZ !== undefined && Math.abs(outlier.gainZ) > 2.5)) && (
-                            <span className="tag warn">outlier?</span>
-                          )}
-                      </div>
-                    </td>
-                    <td>
-                      <div className="table-actions">
-                        <button type="button" className="ghost" onClick={() => onToggleExclude(entry.id)}>
-                          {entry.excluded ? 'Include' : 'Exclude'}
-                        </button>
-                        <button type="button" className="danger" onClick={() => onDelete(entry.id)}>
-                          Delete
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+          <>
+            <div className="muted small" style={{ marginBottom: 12 }}>
+              Showing {sorted.length} entries across {hamsterCount} hamsters.
+            </div>
+            <table>
+              <thead>
+                <tr>
+                  <th>When</th>
+                  <th>Hamster</th>
+                  <th>Level</th>
+                  <th className="right">Cost</th>
+                  <th className="right">Δ/hr</th>
+                  <th className="right">ROI</th>
+                  <th className="right">Δ/hr per 1M</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {sorted.map((entry) => {
+                  const outlier = outliers.get(entry.id);
+                  const conflict = conflicts.has(signature(entry));
+                  const rowClass = entry.excluded ? 'row-dimmed' : undefined;
+                  return (
+                    <tr key={entry.id} className={rowClass}>
+                      <td>{new Date(entry.createdAt).toLocaleString()}</td>
+                      <td>{entry.ham}</td>
+                      <td>
+                        {entry.lvlFrom}→<strong>{entry.lvlTo}</strong>
+                      </td>
+                      <td className="right">{formatNumber(entry.cost)}</td>
+                      <td className="right">{formatNumber(entry.dHr)}</td>
+                      <td className="right">{entry.roi.toFixed(6)}</td>
+                      <td className="right">{formatShortNumber(entry.perM, 2)}</td>
+                      <td>
+                        <div className="flex small">
+                          {entry.excluded && <span className="tag danger">excluded</span>}
+                          {conflict && <span className="tag warn">conflict</span>}
+                          {outlier &&
+                            ((outlier.costZ !== undefined && Math.abs(outlier.costZ) > 2.5) ||
+                              (outlier.gainZ !== undefined && Math.abs(outlier.gainZ) > 2.5)) && (
+                              <span className="tag warn">outlier?</span>
+                            )}
+                        </div>
+                      </td>
+                      <td>
+                        <div className="table-actions">
+                          <button type="button" className="ghost" onClick={() => onToggleExclude(entry.id)}>
+                            {entry.excluded ? 'Include' : 'Exclude'}
+                          </button>
+                          <button type="button" className="danger" onClick={() => onDelete(entry.id)}>
+                            Delete
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </>
         )}
       </div>
     </div>

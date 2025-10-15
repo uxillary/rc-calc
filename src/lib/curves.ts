@@ -33,6 +33,8 @@ export function buildHamsterFits(entries: LogEntry[]): HamsterFit[] {
       hamster: hamster as HamsterId,
       lastLevel: last?.lvlTo ?? null,
       avgMultiplier,
+      costBase: costFit?.a ?? null,
+      costRatio: costFit?.r ?? null,
       gainAlpha: gainFit?.alpha ?? null,
       gainBeta: gainFit?.beta ?? null,
       confidence,
