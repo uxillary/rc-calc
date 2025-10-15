@@ -1,0 +1,30 @@
+{
+  "ham": "Magic Hamster",
+  "complete": false,
+  "points": [
+    {
+      "level": 1,
+      "variants": {
+        "income": [
+          50
+        ]
+      },
+      "notes": "Source reports income only; upgrade cost not disclosed."
+    },
+    {
+      "level": 10,
+      "variants": {
+        "income": [
+          516
+        ]
+      },
+      "notes": "Source reports income only; upgrade cost not disclosed."
+    }
+  ],
+  "source": "https://tgstat.com/channel/@rollertap/146",
+  "log": [
+    "https://duckduckgo.com/html/?q=%5C%22Magic+Hamster%5C%22+%5C%22RCC%5C%22+site%3Atgstat.com",
+    "https://r.jina.ai/https://t.me/RollerTap/146",
+    "logs/2025-10-14.md"
+  ]
+}

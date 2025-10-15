@@ -1,0 +1,22 @@
+{
+  "ham": "Mr. Hamster",
+  "complete": false,
+  "points": [
+    {
+      "level": 1,
+      "variants": {
+        "income": [
+          20015
+        ]
+      },
+      "notes": "Income reported as 20.015K RCC/hour; upgrade cost not published."
+    }
+  ],
+  "source": "https://tgstat.com/channel/@rollertap/143",
+  "log": [
+    "https://duckduckgo.com/html/?q=%5C%22Mr.+Hamster%5C%22+%5C%22RCC%5C%22+site%3Atgstat.com",
+    "https://duckduckgo.com/html/?q=%5C%22Mr.+Hamster%5C%22+%5C%22RCC%5C%22+site%3Afacebook.com",
+    "https://r.jina.ai/https://t.me/RollerTap/143",
+    "logs/2025-10-14.md"
+  ]
+}

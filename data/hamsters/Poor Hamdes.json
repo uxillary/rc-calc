@@ -1,0 +1,12 @@
+{
+  "ham": "Poor Hamdes",
+  "complete": false,
+  "points": [],
+  "notes": "Searches for RollerTap references only surfaced unrelated poverty articles; no upgrade table or stats found.",
+  "source": [
+    "https://r.jina.ai/https://www.bing.com/search?q=%22Poor+Hamdes%22+RollerTap"
+  ],
+  "log": [
+    "logs/2025-10-14.md"
+  ]
+}
